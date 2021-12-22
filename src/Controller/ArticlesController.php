@@ -59,6 +59,8 @@ class ArticlesController extends AppController
             $this->Flash->error(__('Não é possível adicionar o seu artigo.'));
         }
         $this->set(compact('article'));
+        $categories = $this->Articles->Categories->find('treeList');
+        $this->set(compact('categories'));
     }
 
     /**
