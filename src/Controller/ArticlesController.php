@@ -51,6 +51,7 @@ class ArticlesController extends AppController
         $article = $this->Articles->newEmptyEntity();
         if ($this->request->is('post')) {
             $article = $this->Articles->patchEntity($article, $this->request->getData());
+            $article->user_id = $this->Auth->user('id');
             if ($this->Articles->save($article)) {
                 $this->Flash->success(__('Seu artigo foi salvo.'));
 
@@ -85,6 +86,8 @@ class ArticlesController extends AppController
             $this->Flash->error(__('Seu artigo não pôde ser atualizado.'));
         }
         $this->set(compact('article'));
+        $categories = $this->Articles->Categories->find('treeList');
+        $this->set(compact('categories'));
     }
 
     /**
@@ -105,5 +108,23 @@ class ArticlesController extends AppController
         }
 
         return $this->redirect(['action' => 'index']);
+    }
+
+    public function isAuthorized($user)
+    {
+        // Todos os usuários registrados podem adicionar artigos
+        if ($this->request->getParam('action') === 'add') {
+            return true;
+        }
+
+        // Apenas o proprietário do artigo pode editar e excluí
+        if (in_array($this->request->getParam('action'), ['edit', 'delete'])) {
+            $articleId = (int)$this->request->getParam('pass.0');
+            if ($this->Articles->isOwnedBy($articleId, $user['id'])) {
+                return true;
+            }
+        }
+
+        return parent::isAuthorized($user);
     }
 }

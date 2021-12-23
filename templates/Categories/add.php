@@ -21,7 +21,8 @@
                 <?php
                 echo $this->Form->input('parent_id', [
                     'options' => $parentCategories,
-                    'empty' => 'No parent category'
+                    'empty' => 'No parent category',
+                    'placeholder' => 'parent_id'
                 ]);
                 // echo $this->Form->control('parent_id', ['options' => $parentCategories, 'empty' => true]);
                 echo $this->Form->control('name');

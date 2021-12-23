@@ -12,6 +12,8 @@ use Cake\Validation\Validator;
 /**
  * Articles Model
  *
+ * @property \App\Model\Table\CategoriesTable&\Cake\ORM\Association\BelongsTo $Categories
+ *
  * @method \App\Model\Entity\Article newEmptyEntity()
  * @method \App\Model\Entity\Article newEntity(array $data, array $options = [])
  * @method \App\Model\Entity\Article[] newEntities(array $data, array $options = [])
@@ -45,8 +47,10 @@ class ArticlesTable extends Table
         $this->setPrimaryKey('id');
 
         $this->addBehavior('Timestamp');
+
         $this->belongsTo('Categories', [
             'foreignKey' => 'category_id',
+            'joinType' => 'INNER',
         ]);
     }
 
@@ -58,20 +62,39 @@ class ArticlesTable extends Table
      */
     public function validationDefault(Validator $validator): Validator
     {
-            
         $validator
-            ->nonNegativeInteger('id')
+            ->integer('id')
             ->allowEmptyString('id', null, 'create');
 
         $validator
             ->scalar('title')
-            ->maxLength('title', 50)
+            ->maxLength('title', 255)
+            ->requirePresence('title', 'create')
             ->notEmptyString('title');
-            
+
         $validator
             ->scalar('body')
+            ->requirePresence('body', 'create')
             ->notEmptyString('body');
-        
+
         return $validator;
+    }
+
+    /**
+     * Returns a rules checker object that will be used for validating
+     * application integrity.
+     *
+     * @param \Cake\ORM\RulesChecker $rules The rules object to be modified.
+     * @return \Cake\ORM\RulesChecker
+     */
+    public function buildRules(RulesChecker $rules): RulesChecker
+    {
+        $rules->add($rules->existsIn('category_id', 'Categories'), ['errorField' => 'category_id']);
+
+        return $rules;
+    }
+    public function isOwnedBy($articleId, $userId)
+    {
+        return $this->exists(['id' => $articleId, 'user_id' => $userId]);
     }
 }
